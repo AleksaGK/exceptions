@@ -25,6 +25,12 @@ class Calculator
         }
     }
 
+    public function calculateSum($numbers)
+    {
+        assert(is_array($numbers), new AssertionError('Input must be an array'));
+        return array_sum($numbers);
+    }
+
     private function checkNumber($a)
     {
         if ($a < PHP_INT_MIN || $a > PHP_INT_MAX)
@@ -39,10 +45,23 @@ class Calculator
         return $a - $b;
     }
 
+    public function shiftNumber($shift, $number)
+    {
+        try {
+            if (!is_numeric($shift))
+                throw new TypeError("Shift must be a number");
+            return $number >> $shift;
+        } catch (ArithmeticError $ex) {
+            throw new ArithmeticError($ex->getMessage());
+        }
+    }
+
     public function divide($a, $b)
     {
         if ($b == 0)
-            throw new DomainException('Division by zero.');
+            throw new DivisionByZeroError('Division by zero.');
+        if ($a / $b < 0.01 && $a / $b > 0)
+            throw new UnderflowException('Result of division is too small');
         return $a / $b;
     }
 
@@ -74,9 +93,16 @@ class Calculator
                 throw new BadMethodCallException("Invalid method: $method");
         }
     }
+
+    public function calculate($expresison)
+    {
+        return eval($expresison);
+    }
 }
 
 
+//try N*catch           N [1,...]
+//try N*catch finally   N [0,...]
 try {
     $calculator = new Calculator();
     // $result = $calculator->divide(10, 0);
@@ -86,16 +112,26 @@ try {
     // $result = $calculator->subtract(2, 0);
     // $result = $calculator->add(PHP_INT_MAX, PHP_INT_MAX);
     // $result = $calculator->multiply(2, PHP_INT_MAX);
-    $result = $calculator->add2(2, PHP_INT_MAX + PHP_INT_MAX);
-    echo "Result: $result";
-    $result = $calculator->add(2, 5);
-    echo "Result: $result";
-} catch (LogicException $e) {
-    echo "LogicException: " . $e->getMessage();
-} catch (Exception $e) {
-    echo "Exception: " . $e->getMessage();
-} catch (TypeError $e) {
-    echo "TypeError: " . $e->getMessage();
+    // $result = $calculator->add2(2, PHP_INT_MAX + PHP_INT_MAX);
+    // echo "Result: $result";
+    // $result = $calculator->add(2, 5);
+    // $result = $calculator->divide(2, 500);
+    // $result = $calculator->divide(-1, 0);
+    // $object = json_decode('{"broj": 1}');
+    // $result = $calculator->calculateSum([1, 2, 3]);
+    // $result = $calculator->calculateSum($object);
+    //8 -> 1000
+    //1     0     0    0
+    //2^3   2^2   2^1   2^0 
+
+    // $result = $calculator->calculate('echo "error"');
+    // $result = $calculator->shiftNumber('echo', 3);
+    echo $calculator->add(5);
+    // echo "Result: $result";
+} catch (ArgumentCountError $e) {
+    echo "ArgumentCountError: " . $e->getMessage();
+} catch (Error $e) {
+    echo "Error: " . $e->getMessage();
 } finally {
     echo "<br>finally";
 }
